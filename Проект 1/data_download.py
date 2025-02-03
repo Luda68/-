@@ -5,6 +5,7 @@ import pandas as pd
 def fetch_stock_data(ticker, period='1mo'):
     stock = yf.Ticker(ticker)
     data = stock.history(period=translate_period(period))
+
     return data
 
 
@@ -28,7 +29,33 @@ def notify_if_strong_fluctuations(data, threshold=20):
     percent = (dif / average_price) * 100
     if percent >= threshold:
         return f'Колебания цены акций фирмы превышает заданный порог {threshold}%.'
-    else: return f'Колебания цены акций фирмы не превышает заданный порог {threshold}%.'
+    else:
+        return f'Колебания цены акций фирмы не превышает заданный порог {threshold}%.'
+
+
+def add_rsi(data, window_length=14):
+    delta = data['Close'].diff()
+
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+
+    average_gain = gain.rolling(window=window_length).mean()
+    average_loss = loss.rolling(window=window_length).mean()
+
+    rs = average_gain / average_loss
+
+    data['RSI'] = 100 - (100 / (1 + rs))
+    print(data)
+    return data
+
+
+def add_macd(data, short_window=12, long_window=26, signal_window=9):
+    data['EMA_12'] = data['Close'].ewm(span=short_window, adjust=False).mean()
+    data['EMA_26'] = data['Close'].ewm(span=long_window, adjust=False).mean()
+    data['MACD'] = data['EMA_12'] - data['EMA_26']
+    data['Signal'] = data['MACD'].ewm(span=signal_window, adjust=False).mean()
+    return data
+
 
 
 def export_data_to_csv(data, filename="dataframe.csv"):
@@ -61,4 +88,6 @@ def translate_period(period):
         return 'max'
     else:
         return period
+
+
 

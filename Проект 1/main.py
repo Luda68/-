@@ -13,17 +13,17 @@ def main():
 
     # Fetch stock data
     stock_data = dd.fetch_stock_data(ticker, period)
-
     # Add moving average to the data
     stock_data = dd.add_moving_average(stock_data)
-
+    stock_data = dd.add_rsi(stock_data)
+    stock_data = dd.add_macd(stock_data)
     # Plot the data
     dplt.create_and_save_plot(stock_data, ticker, period)
 
     print(dd.notify_if_strong_fluctuations(stock_data))
 
     export = input('Хотите экспортировать выбранные данные? Ответьте Да / Нет')
-    if export.lower() == 'a' or export.lower() == 'ano':
+    if export.lower() == 'д' or export.lower() == 'да':
         dd.export_data_to_csv(stock_data)
 
 if __name__ == "__main__":
